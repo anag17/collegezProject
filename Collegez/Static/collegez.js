@@ -32,7 +32,30 @@ function getCollege(item) {
       textBody += 'Tuition: $' + collegeData[item]['Tuition'] + '<br>';
       textBody += 'Salary: $' + collegeData[item]['Salary'];
     }
-    document.getElementById('search_results').innerHTML = textBody;
+
+    var moreText = '';
+    var numYears = collegeData[item]['Tuition']*4/collegeData[item]['Salary'];
+    var avgSalaryInRegion = getAverageSalaryByRegion(collegeData[item]['Region']);
+    var avgTuitionInRegion = getAverageTuitionByRegion(collegeData[item]['Region']);
+    var percentAboveTuition = collegeData[item]['Tuition']/avgTuitionInRegion-1;
+    var percentAboveSalary = collegeData[item]['Salary']/avgSalaryInRegion-1;
+    moreText += '<p> Your salary will pay off your tuition in ' + numYears.toFixed(2) + ' years.</p>';
+    moreText += '<p> The average salary in your region is ' + avgSalaryInRegion.toFixed(2) + '.</p>';
+    if (percentAboveSalary > 0) {
+      moreText += '<p> Your salary is ' + percentAboveSalary.toFixed(2) + '% above the average. </p>';
+    }
+    else {
+      moreText += '<p> Your salary is ' + (percentAboveSalary*-1).toFixed(2) + '% below the average. </p>';
+    }
+    moreText += '<p> The average tuition in your region is ' + avgTuitionInRegion.toFixed(2) + '.</p>';
+    if (percentAboveTuition > 0) {
+      moreText += '<p> Your tuition is ' + percentAboveTuition.toFixed(2) + '% above the average. </p>';
+    }
+    else {
+      moreText += '<p> Your tuition is ' + (percentAboveTuition*-1).toFixed(2) + '% below the average. </p>';
+    }
+
+    document.getElementById('search_results').innerHTML = textBody + moreText;
 
 }
 
@@ -46,40 +69,70 @@ function getRegion(item) {
     var regionStats = "Region: " + item + "<br>";
     var collegeList = "Colleges: <br>";
 
-    tuitions = [];
-    tuitionSum = 0;
-    salaries = [];
-    salarySum = 0;
-
     collegeTypes = [];
     for (key in collegeData) {
       if (collegeData[key]['Region'] == item) {
-        tuitions.push(collegeData[key]['Tuition']);
-        tuitionSum += collegeData[key]['Tuition'];
-        salaries.push(collegeData[key]['Salary']);
-        salarySum += collegeData[key]['Salary'];
         collegeTypes.push(collegeData[key]['College Type'])
         if (collegeData[key]['College Type'] == "") {
           collegeTypes.push(collegeData[key]['College Type 2'])
         }
         collegeList += '<p id=\"links\" onclick=\"getCollege(\'' + key + '\')\"> '+ key + '</p>';
-        //collegeList += '<a href=\"/\" onclick = \"getCollege(\'' + key + '\')\"> '+ key + '</a>' + '<br>';
       }
     }
     regionStats += '<li id=\"Statistics\"> Statistics: ';
-    regionStats += '<ul> Average Tuition: $ ' + Math.round(tuitionSum/tuitions.length) + '</ul>';
-    regionStats += '<ul> Average Salary: $ ' + Math.round(salarySum/salaries.length) + '</ul>';
+    regionStats += '<ul> Average Tuition: $ ' + getAverageTuitionByRegion(item) + '</ul>';
+    regionStats += '<ul> Average Salary: $ ' + getAverageSalaryByRegion(item) + '</ul>';
     regionStats += '</li>'
 
     document.getElementById('search_results').innerHTML += regionStats + '<br>' +collegeList;
 
 }
 
+function showGraph() {
+    var results = document.getElementById('map');
+    results.innerHTML = '';
+    var regionStats = "Graphs: <br>";
+    var graphs = "<img src=\"../static/images/tuitionSalary.jpg\" width=\"500\" height=\"300\"> <br>";
+    graphs += "<img src=\"../static/images/tuitionRegion.jpg\" width=\"500\" height=\"400\">";
+    graphs += "<img src=\"../static/images/salaryRegion.jpg\" width=\"500\" height=\"400\"> + <br>";
+    graphs += "<img src=\"../static/images/SalaryCollegeType.jpg\" width=\"500\" height=\"400\">";
+    graphs += "<img src=\"../static/images/TuitionCollegeType.jpg\" width=\"500\" height=\"400\"> + <br>";
+
+    document.getElementById('search_results').innerHTML = graphs;
+
+}
+
+function getAverageSalaryByRegion(region) {
+  var salaries = [];
+  var salarySum = 0;
+
+  for (key in collegeData) {
+    if (collegeData[key]['Region'] == region) {
+      salaries.push(collegeData[key]['Salary']);
+      salarySum += collegeData[key]['Salary'];
+    }
+  }
+  return Math.round(salarySum/salaries.length);
+}
+
+function getAverageTuitionByRegion(region) {
+  var tuitions = [];
+  var tuitionSum = 0;
+
+  for (key in collegeData) {
+    if (collegeData[key]['Region'] == region) {
+      tuitions.push(collegeData[key]['Tuition']);
+      tuitionSum += collegeData[key]['Tuition'];
+    }
+  }
+  return Math.round(tuitionSum/tuitions.length);
+}
+
  /*
   *  When the user clicks help button, an alert shows up explaining what they can search for
   */
 function helpAlert() {
-    alert(`Search for a college by name. Search "list" to see what colleges there is data for. You can also click on regions to get a list of colleges in that region and region specific statistics.`)
+    alert(`Search for a college by name. Click the regions in the map to display region-specific information and list the colleges in that region (that we have data on)`)
 }
 
 /*
